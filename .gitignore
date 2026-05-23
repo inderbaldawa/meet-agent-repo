@@ -1,0 +1,57 @@
+# Secrets and credentials
+.env
+.env.local
+.env.*.local
+keys/
+*.json.key
+service-account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.npm/
+.yarn/
+yarn-error.log
+npm-debug.log*
+.pnp.*
+.vite/
+dist/
+.turbo/
+
+# Playwright
+playwright-report/
+test-results/
+.last-run.json
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Runtime
+out/
+screenshots/
+*.log
+logs/
+
+# Firebase
+.firebase/
+firebase-debug.log
+ui-debug.log

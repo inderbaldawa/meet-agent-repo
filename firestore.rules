@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// Demo-only rules: anyone can READ sessions and their subcollections.
+// All writes go through the orchestrator using the Admin SDK (service account),
+// which bypasses these rules. No client write access is allowed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /sessions/{sessionId} {
+      allow read: if true;
+      allow write: if false;
+
+      match /{subcollection}/{docId} {
+        allow read: if true;
+        allow write: if false;
+      }
+    }
+  }
+}
