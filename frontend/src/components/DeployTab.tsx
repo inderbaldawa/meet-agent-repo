@@ -67,10 +67,12 @@ export function DeployTab({ onDeployed }: { onDeployed: (sid: string) => void })
       <aside className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <h3 className="text-base font-semibold mb-3">Agents on duty</h3>
         <ul className="space-y-3 text-sm">
-          <Agent name="Context" emoji="🔍" desc="Watches the screen via Vision AI, distils a topic" />
-          <Agent name="Research" emoji="🔎" desc="Google-searches the topic, summarises one fact" />
-          <Agent name="Hype" emoji="🎉" desc="Drops a short chat line + reaction" />
-          <Agent name="Moderator" emoji="⚠️" desc="Warns on emoji-spam in chat" />
+          <Agent name="Hype" emoji="🎉" desc="Celebrates milestones and keeps energy high" />
+          <Agent name="Expert Commentator" emoji="🎯" desc="Drops game tips and strategy insights" />
+          <Agent name="Chat Moderator" emoji="⚠️" desc="Handles emoji spam and toxic messages" />
+          <Agent name="Controversy Detector" emoji="🛡️" desc="Flags risky content and redirects diplomatically" />
+          <Agent name="Engagement Optimizer" emoji="📈" desc="Prompts interaction when chat goes quiet" />
+          <Agent name="Brand Safety" emoji="⚖️" desc="Detects copyright and brand risk on screen" />
         </ul>
         <h3 className="text-base font-semibold mt-6 mb-3">What to demo</h3>
         <ol className="list-decimal pl-5 space-y-1.5 text-sm text-slate-600">

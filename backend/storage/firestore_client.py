@@ -181,3 +181,19 @@ def set_research_cache(sid: str, topic_hash: str, payload: dict[str, Any]) -> No
 
 def topic_hash(topic: str) -> str:
     return hashlib.sha256(topic.strip().lower().encode()).hexdigest()[:16]
+
+
+def get_last_event_timestamp(sid: str, event_type: str) -> float | None:
+    """Return the epoch timestamp of the most recent event of a given type, or None."""
+    docs = list(
+        session_ref(sid)
+        .collection("events")
+        .where("type", "==", event_type)
+        .order_by("timestamp", direction=firestore.Query.DESCENDING)
+        .limit(1)
+        .stream()
+    )
+    if not docs:
+        return None
+    ts = (docs[0].to_dict() or {}).get("timestamp")
+    return ts.timestamp() if ts and hasattr(ts, "timestamp") else None

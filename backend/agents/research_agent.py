@@ -19,6 +19,14 @@ log = logging.getLogger(__name__)
 
 MODEL = "gemini-2.5-pro"
 
+SKIP_TOPICS = {
+    "idle", "technology", "display", "screen", "screenshot", "computing",
+    "software", "hardware", "interface", "computer", "device", "monitor",
+    "google meet", "google", "meet", "zoom", "teams", "microsoft teams",
+    "video conference", "video call", "conference", "webex", "skype",
+    "usb", "bluetooth", "webcam", "microphone", "lobby", "waiting room",
+}
+
 _genai: genai.Client | None = None
 
 
@@ -56,6 +64,10 @@ OUTPUT_SCHEMA = {
 def run(sid: str, shared_context: dict) -> None:
     topic = (shared_context or {}).get("topic", "").strip()
     if not topic:
+        return
+
+    if topic == "idle" or any(skip in topic.lower() for skip in SKIP_TOPICS):
+        log.debug("[research] skipping generic/meet topic: %r", topic)
         return
 
     th = store.topic_hash(topic)

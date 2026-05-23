@@ -11,11 +11,16 @@ export type Incident = {
 };
 
 const TONE: Record<string, string> = {
-  context_agent: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  research_agent: "bg-rose-50 text-rose-700 border-rose-200",
-  hype_agent: "bg-amber-50 text-amber-700 border-amber-200",
-  moderator_agent: "bg-orange-50 text-orange-700 border-orange-200",
-  system: "bg-slate-100 text-slate-700 border-slate-200",
+  context_agent:              "bg-indigo-50 text-indigo-700 border-indigo-200",
+  research_agent:             "bg-rose-50 text-rose-700 border-rose-200",
+  hype_agent:                 "bg-amber-50 text-amber-700 border-amber-200",
+  moderator_agent:            "bg-orange-50 text-orange-700 border-orange-200",
+  chat_reactor_agent:         "bg-green-50 text-green-700 border-green-200",
+  expert_commentator_agent:   "bg-sky-50 text-sky-700 border-sky-200",
+  controversy_detector_agent: "bg-red-50 text-red-700 border-red-200",
+  engagement_optimizer_agent: "bg-violet-50 text-violet-700 border-violet-200",
+  brand_safety_agent:         "bg-teal-50 text-teal-700 border-teal-200",
+  system:                     "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 export function IncidentFeed({ incidents }: { incidents: Incident[] }) {

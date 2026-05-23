@@ -18,6 +18,14 @@ log = logging.getLogger(__name__)
 
 MODEL = "gemini-2.5-flash"
 COOLDOWN_SECONDS = 30.0
+MIN_URGENCY = 0.45
+SKIP_TOPICS = {
+    "idle", "technology", "display", "screen", "screenshot", "computing",
+    "software", "hardware", "interface", "computer", "device", "monitor",
+    "google meet", "google", "meet", "zoom", "teams", "microsoft teams",
+    "video conference", "video call", "conference", "webex", "skype",
+    "usb", "bluetooth", "webcam", "microphone", "lobby", "waiting room",
+}
 
 _genai: genai.Client | None = None
 
@@ -56,10 +64,20 @@ OUTPUT_SCHEMA = {
 ALLOWED_EMOJIS = {"👍", "❤️", "😂", "🎉", "👏", "🔥"}
 
 
-def run(sid: str, research_data: dict) -> None:
+def run(sid: str, research_data: dict, shared_context: dict | None = None) -> None:
     topic = (research_data or {}).get("topic", "").strip()
     summary = (research_data or {}).get("summary", "").strip()
-    if not topic or not summary:
+    if not topic or not summary or len(summary) < 20:
+        return
+
+    # Skip generic/idle topics
+    if any(skip in topic.lower() for skip in SKIP_TOPICS):
+        return
+
+    # Only hype when urgency is meaningful
+    urgency = (shared_context or {}).get("urgency", 1.0)
+    if urgency < MIN_URGENCY:
+        log.debug("[hype] skipped (urgency %.2f < %.2f)", urgency, MIN_URGENCY)
         return
 
     if not store.agent_cooldown_ok(sid, "hype_agent", COOLDOWN_SECONDS):
