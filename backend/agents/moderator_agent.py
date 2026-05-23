@@ -12,13 +12,18 @@ from backend.storage import firestore_client as store
 
 log = logging.getLogger(__name__)
 
-COOLDOWN_SECONDS = 60.0
-EMOJI_SPAM_THRESHOLD = 5
-WARNING_MESSAGE = "⚠️ Please keep emoji use to a minimum 🙏"
+COOLDOWN_SECONDS = 15.0
+EMOJI_SPAM_THRESHOLD = 3
+
+_EMOJI_RANGES = (
+    (0x2600, 0x27BF),
+    (0x1F300, 0x1FAFF),
+    (0x1F900, 0x1F9FF),
+)
 
 
 def _count_emojis(text: str) -> int:
-    return sum(1 for ch in text if ord(ch) > 0x1F300)
+    return sum(1 for ch in text if any(lo <= ord(ch) <= hi for lo, hi in _EMOJI_RANGES))
 
 
 def run(sid: str, event: dict[str, Any]) -> None:
@@ -29,7 +34,7 @@ def run(sid: str, event: dict[str, Any]) -> None:
     sender = data.get("sender") or "unknown"
 
     # Trust an upstream is_spam flag if present, else recompute
-    is_spam = bool(data.get("is_spam")) or _count_emojis(text) > EMOJI_SPAM_THRESHOLD
+    is_spam = bool(data.get("is_spam")) or _count_emojis(text) >= EMOJI_SPAM_THRESHOLD
     if not is_spam:
         return
 
@@ -37,7 +42,18 @@ def run(sid: str, event: dict[str, Any]) -> None:
         log.debug("[moderator] spam detected but cooldown active")
         return
 
-    if store.enqueue_chat(sid, WARNING_MESSAGE, "moderator_agent"):
+    # Find the most-spammed emoji in the message for a specific callout
+    from collections import Counter
+    emoji_counts = Counter(ch for ch in text if ord(ch) > 0x1F300)
+    top_emoji = emoji_counts.most_common(1)[0][0] if emoji_counts else ""
+    name = sender.split()[0] if sender and sender != "unknown" else "Hey"
+    warning = (
+        f"⚠️ {name}, lay off the {top_emoji} — keep chat readable for everyone."
+        if top_emoji
+        else f"⚠️ {name}, too many emojis — keep chat readable please."
+    )
+
+    if store.enqueue_chat(sid, warning, "moderator_agent"):
         store.log_incident(
             sid,
             agent="moderator_agent",

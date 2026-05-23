@@ -56,9 +56,31 @@ def reaction_button(page: Page) -> Locator:
     return page.get_by_role("button", name=re.compile(r"send a reaction|reaction", re.I))
 
 
+# Meet labels reaction buttons by descriptive name, not the emoji character.
+# Each entry is (emoji_char, aria_label_regex).
+_REACTION_LABELS: list[tuple[str, str]] = [
+    ("👍", "thumbs up|like"),
+    ("❤️", "heart|love"),
+    ("😂", "laugh|haha|joy|tears of joy"),
+    ("🎉", "celebrat|party|confetti|tada"),
+    ("👏", "clap|applause"),
+    ("🔥", "fire|hot"),
+    ("😮", "wow|surprise|amazed|open mouth"),
+]
+
+
 def reaction_emoji_button(page: Page, emoji: str) -> Locator:
-    """Within the reactions popover, the button that sends `emoji`."""
-    return page.get_by_role("button", name=emoji)
+    """Within the reactions popover, the button that sends `emoji`.
+
+    Tries the emoji character first (some Meet versions use it as the aria-label),
+    then falls back to a descriptive name pattern.
+    """
+    by_char = page.get_by_role("button", name=emoji)
+    for char, pattern in _REACTION_LABELS:
+        if char == emoji:
+            by_label = page.get_by_role("button", name=re.compile(pattern, re.I))
+            return by_char.or_(by_label)
+    return by_char
 
 
 def participants_count_button(page: Page) -> Locator:

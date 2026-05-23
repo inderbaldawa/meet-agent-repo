@@ -17,8 +17,8 @@ from backend.storage import firestore_client as store
 log = logging.getLogger(__name__)
 
 MODEL = "gemini-2.5-flash"
-COOLDOWN_SECONDS = 30.0
-MIN_URGENCY = 0.45
+COOLDOWN_SECONDS = 7.0
+MIN_URGENCY = 0.25
 SKIP_TOPICS = {
     "idle", "technology", "display", "screen", "screenshot", "computing",
     "software", "hardware", "interface", "computer", "device", "monitor",
@@ -37,19 +37,27 @@ def client() -> genai.Client:
     return _genai
 
 
-HYPE_PROMPT = """You are the Hype Agent in a Google Meet. Your job is to drop ONE short,
-high-energy chat message that references the fact below, plus one emoji reaction.
+HYPE_PROMPT = """You are the Hype Agent in a Google Meet stream. Share the fact below as a
+natural, relevant chat message — like something a knowledgeable viewer would say.
 
 Topic: {topic}
+Stream agenda: {agenda}
 Fact: {summary}
 
-Hard rules:
-- Chat line: <= 90 characters, conversational, no hashtags, no "as a fan of"
-- Reaction emoji: exactly one of: 👍 ❤️ 😂 🎉 👏 🔥
-- If the fact is empty or weak, return empty chat (the orchestrator will skip)
+Rules:
+- Chat line: ≤ 90 characters, grounded in the fact, no jokes, no hashtags, no hype clichés
+- If an agenda is given, make sure the comment is relevant to what the streamer is doing
+- Pick the emoji that best fits the TONE of the fact:
+    👍 = useful tip or agreement
+    ❤️ = impressive or heartfelt fact
+    😂 = genuinely surprising or ironic stat
+    🎉 = milestone or achievement
+    👏 = skill or effort being shown
+    🔥 = intense, record-breaking, or exceptional fact
+- If the fact is empty or weak, return empty strings
 
 Return JSON:
-{{"chat": "<line or empty>", "emoji": "<emoji>"}}
+{{"chat": "<message or empty>", "emoji": "<one emoji>"}}
 """
 
 OUTPUT_SCHEMA = {
@@ -84,7 +92,8 @@ def run(sid: str, research_data: dict, shared_context: dict | None = None) -> No
         log.debug("[hype] skipped (cooldown)")
         return
 
-    prompt = HYPE_PROMPT.format(topic=topic, summary=summary)
+    agenda = (shared_context or {}).get("agenda", "")
+    prompt = HYPE_PROMPT.format(topic=topic, agenda=agenda or "not specified", summary=summary)
 
     try:
         resp = client().models.generate_content(

@@ -29,8 +29,9 @@ def client() -> genai.Client:
     return _genai
 
 
-PROMPT_TEMPLATE = """You are the Context Agent for an AI assistant observing a live game stream in Google Meet.
+PROMPT_TEMPLATE = """You are the Context Agent for an AI assistant observing a live stream in Google Meet.
 You receive Vision AI output from a screenshot: labels, on-screen text, and logos.
+You also have the streamer's stated agenda — use it to help identify topics correctly.
 
 Your job: identify what game or real-world activity is actually being shown.
 
@@ -42,8 +43,10 @@ Rules:
 - Only return a real topic when you can identify something specific that is being SHARED or
   shown intentionally: a game title, a physical object, a book cover, a sport, a dish, a slide deck
   with real content, code, etc.
+- When the agenda mentions a specific topic and visual evidence is consistent with it, trust the agenda
 - urgency 0.0-0.4 = background/ambient, 0.5-0.7 = something interesting, 0.8-1.0 = act now
 
+Stream agenda: {agenda}
 Latest vision labels: {labels}
 Detected text (truncated): {text}
 Detected logos: {logos}
@@ -87,7 +90,11 @@ def run(sid: str, event: dict[str, Any]) -> None:
     if labels and all(l.lower() in GENERIC for l in labels):
         return
 
+    sess_data = store.session_ref(sid).get().to_dict() or {}
+    agenda = (sess_data.get("agenda") or "").strip()
+
     prompt = PROMPT_TEMPLATE.format(
+        agenda=agenda or "(not specified)",
         labels=", ".join(labels) or "(none)",
         text=text or "(none)",
         logos=", ".join(logos) or "(none)",
@@ -108,6 +115,8 @@ def run(sid: str, event: dict[str, Any]) -> None:
         log.warning("context agent gemini call failed: %s", e)
         return
 
+    if agenda:
+        parsed["agenda"] = agenda
     store.update_shared_context(sid, parsed)
     store.log_incident(
         sid,

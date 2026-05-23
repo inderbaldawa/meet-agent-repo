@@ -19,7 +19,7 @@ from backend.storage import firestore_client as store
 log = logging.getLogger(__name__)
 
 MODEL = "gemini-2.5-flash"
-COOLDOWN_SECONDS = 15.0
+COOLDOWN_SECONDS = 4.0
 ALLOWED_EMOJIS = {"👍", "❤️", "😂", "🎉", "👏", "🔥"}
 
 _genai: genai.Client | None = None
@@ -32,19 +32,21 @@ def client() -> genai.Client:
     return _genai
 
 
-PROMPT = """You are the Chat Reactor in a Google Meet. A participant posted a chat message.
-Decide whether to react with an emoji, send a brief reply, or do nothing.
+PROMPT = """You are the Chat Reactor in a Google Meet stream. A participant posted a message.
+Decide whether to react with an emoji, send a genuine reply, or stay silent.
 
 Message from {sender}: "{text}"
 
 Rules:
-- React if the message is interesting, enthusiastic, funny, or on-topic
-- Reply (≤ 60 chars) only if they asked a question or said something worth engaging with
-- Do NOTHING for mundane filler: "ok", "nice", "lol", "👍", "cool", single words
-- Reaction emoji must be exactly one of: 👍 ❤️ 😂 🎉 👏 🔥
-- No hashtags, no "as an AI", keep replies conversational and brief
+- React only if the message has real substance: a question, an insight, a strong opinion,
+  or genuine enthusiasm about the content
+- Reply (≤ 60 chars) only to direct questions or statements that deserve a real response —
+  be direct and informative, not performative
+- Do NOTHING for: filler words, single emojis, "ok", "lol", "nice", "cool", "wow", "🔥"
+- No jokes, no hype, no "great point!", no sycophantic openers
+- Emoji must be one of: 👍 ❤️ 😂 🎉 👏 🔥 — match the tone of the message
 
-Return JSON: {{"reaction": "<emoji or empty string>", "reply": "<text or empty string>"}}
+Return JSON: {{"reaction": "<emoji or empty>", "reply": "<text or empty>"}}
 """
 
 OUTPUT_SCHEMA = {

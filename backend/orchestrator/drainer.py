@@ -15,7 +15,7 @@ from backend.storage import firestore_client as store
 
 log = logging.getLogger(__name__)
 
-GLOBAL_ACTION_FLOOR_SECONDS = 5.0
+GLOBAL_ACTION_FLOOR_SECONDS = 0.5
 TICK_SECONDS = 1.0
 
 

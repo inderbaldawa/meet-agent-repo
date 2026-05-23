@@ -41,12 +41,13 @@ def session_ref(sid: str) -> firestore.DocumentReference:
     return client().collection("sessions").document(sid)
 
 
-def create_session(meet_url: str, display_name: str) -> str:
+def create_session(meet_url: str, display_name: str, agenda: str = "") -> str:
     sid = uuid.uuid4().hex[:12]
     session_ref(sid).set(
         {
             "meet_url": meet_url,
             "display_name": display_name,
+            "agenda": agenda,
             "status": "active",
             "shared_context": {},
             "research_data": {},

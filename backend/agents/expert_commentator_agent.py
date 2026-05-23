@@ -19,7 +19,7 @@ from backend.storage import firestore_client as store
 log = logging.getLogger(__name__)
 
 MODEL = "gemini-2.5-flash"
-COOLDOWN_SECONDS = 45.0
+COOLDOWN_SECONDS = 10.0
 
 SKIP_TOPICS = {
     "idle", "technology", "display", "screen", "screenshot", "computing",
@@ -39,16 +39,18 @@ def client() -> genai.Client:
     return _genai
 
 
-PROMPT = """You are an Expert Commentator on a live game stream. You have just seen a screenshot
+PROMPT = """You are an Expert Commentator on a live stream. You have just seen a screenshot
 of what's being played/shown. Your job: deliver ONE sharp, specific insight — a strategy tip,
 a surprising fact, or a technique observation — grounded in what's actually visible.
 
 Topic detected: {topic}
+Stream agenda: {agenda}
 Vision labels: {labels}
 On-screen text: {text}
 
 Rules:
 - Be specific to the game/content — no generic advice
+- If an agenda is provided, ground your insight in the context of what the streamer is doing
 - Max 90 characters, conversational, no hashtags
 - If there's nothing specific enough to comment on, return empty chat
 - Do NOT comment on the stream setup, camera, or UI
@@ -70,7 +72,7 @@ def run(sid: str, event: dict[str, Any], shared_context: dict | None = None) -> 
     topic = (shared_context or {}).get("topic", "").strip()
     urgency = (shared_context or {}).get("urgency", 0.0)
 
-    if not topic or topic == "idle" or urgency < 0.5:
+    if not topic or topic == "idle" or urgency < 0.3:
         return
 
     if any(skip in topic.lower() for skip in SKIP_TOPICS):
@@ -83,8 +85,10 @@ def run(sid: str, event: dict[str, Any], shared_context: dict | None = None) -> 
     labels = data.get("labels", [])
     text = (data.get("text") or "")[:300]
 
+    agenda = (shared_context or {}).get("agenda", "")
     prompt = PROMPT.format(
         topic=topic,
+        agenda=agenda or "not specified",
         labels=", ".join(labels[:8]) or "(none)",
         text=text or "(none)",
     )

@@ -24,8 +24,8 @@ from backend.storage import firestore_client as store
 log = logging.getLogger(__name__)
 
 MODEL = "gemini-2.5-flash"
-COOLDOWN_SECONDS = 90.0
-SILENCE_THRESHOLD_SECONDS = 60.0
+COOLDOWN_SECONDS = 15.0
+SILENCE_THRESHOLD_SECONDS = 15.0
 
 _genai: genai.Client | None = None
 
@@ -41,11 +41,12 @@ PROMPT = """You are an Engagement Optimizer on a live stream. The chat has gone 
 Suggest ONE short interactive prompt to re-engage the audience.
 
 Current topic: {topic}
+Stream agenda: {agenda}
 
 Ideas (pick whichever fits best):
-- A quick poll question related to the topic
+- A quick poll question related to the topic or agenda
 - An open question to the audience ("What would YOU do here?")
-- A challenge or call to action ("Drop a 🔥 if you agree!")
+- A challenge or call to action tied to what the streamer is doing
 - A milestone tease ("We're close to 100 messages — let's go!")
 
 Rules: ≤ 80 characters, energetic, no hashtags. Return empty if topic is idle/generic.
@@ -77,7 +78,8 @@ def run(sid: str, event: dict[str, Any], shared_context: dict | None = None) -> 
     if not store.agent_cooldown_ok(sid, "engagement_optimizer_agent", COOLDOWN_SECONDS):
         return
 
-    prompt = PROMPT.format(topic=topic)
+    agenda = (shared_context or {}).get("agenda", "")
+    prompt = PROMPT.format(topic=topic, agenda=agenda or "not specified")
 
     try:
         resp = client().models.generate_content(

@@ -17,7 +17,7 @@ from backend.tools import google_search
 
 log = logging.getLogger(__name__)
 
-MODEL = "gemini-2.5-pro"
+MODEL = "gemini-2.5-flash"
 
 SKIP_TOPICS = {
     "idle", "technology", "display", "screen", "screenshot", "computing",

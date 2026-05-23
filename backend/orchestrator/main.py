@@ -22,7 +22,7 @@ from pydantic import BaseModel
 from backend.bot.meet_bot import MeetBot
 from backend.orchestrator.drainer import drainer_loop
 from backend.orchestrator.listeners import SessionListeners
-from backend.orchestrator.loop import capture_loop, chat_monitor_loop
+from backend.orchestrator.loop import capture_loop, chat_monitor_loop, heartbeat_loop
 from backend.storage import firestore_client as store
 
 dotenv.load_dotenv()
@@ -67,6 +67,7 @@ app.add_middleware(
 class DeployRequest(BaseModel):
     meet_url: str
     display_name: str = "AI Assistant"
+    agenda: str = ""
 
 
 @app.get("/health")
@@ -76,7 +77,7 @@ def health() -> dict[str, Any]:
 
 @app.post("/deploy")
 async def deploy(req: DeployRequest) -> dict[str, Any]:
-    sid = store.create_session(req.meet_url, req.display_name)
+    sid = store.create_session(req.meet_url, req.display_name, req.agenda)
 
     bot = MeetBot(req.meet_url, req.display_name)
     await bot.start()
@@ -99,6 +100,7 @@ async def deploy(req: DeployRequest) -> dict[str, Any]:
     session.tasks.append(asyncio.create_task(capture_loop(sid, bot, session.stop_event)))
     session.tasks.append(asyncio.create_task(chat_monitor_loop(sid, bot, session.stop_event)))
     session.tasks.append(asyncio.create_task(drainer_loop(sid, bot, session.stop_event)))
+    session.tasks.append(asyncio.create_task(heartbeat_loop(sid, session.stop_event)))
 
     store.log_incident(sid, "system", "session_started", req.meet_url, "info")
     return {"session_id": sid, "status": "active"}
