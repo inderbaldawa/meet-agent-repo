@@ -17,7 +17,7 @@ from backend.storage import firestore_client as store
 
 log = logging.getLogger(__name__)
 
-MODEL = "gemini-3.5-flash"
+MODEL = "gemini-2.5-flash"
 
 _genai: genai.Client | None = None
 

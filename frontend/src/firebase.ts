@@ -9,4 +9,5 @@ const config = {
 };
 
 export const firebaseApp = initializeApp(config);
-export const db = getFirestore(firebaseApp);
+const firestoreDatabase = import.meta.env.VITE_FIRESTORE_DATABASE || "(default)";
+export const db = getFirestore(firebaseApp, firestoreDatabase);

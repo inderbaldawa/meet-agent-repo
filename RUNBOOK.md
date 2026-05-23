@@ -102,4 +102,4 @@ Or temporarily disable: System Settings → Network → Firewall → off.
 | Bot reaction click fails | Reactions popover layout changed | Update `selectors.reaction_emoji_button` |
 | CORS errors in browser console | Laptop B IP not in ALLOWED_ORIGINS | Set `ALLOWED_ORIGINS=http://<laptopA-LAN-IP>:5173` in backend `.env` and restart uvicorn |
 | Vision API 403 | Vision API not enabled or SA missing role | `gcloud services enable vision.googleapis.com` and re-check service account roles |
-| Gemini 404 model | `gemini-3.5-flash` not yet available in your project | Edit `MODEL` in `backend/agents/*_agent.py` to `gemini-3.0-flash` or whatever the API lists |
+| Gemini 404 model | Model not available in your project | Edit `MODEL` in `backend/agents/*_agent.py` to `gemini-2.0-flash` / `gemini-2.0-pro` or check `client().models.list()` |

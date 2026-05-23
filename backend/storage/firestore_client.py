@@ -32,7 +32,8 @@ def client() -> firestore.Client:
     global _client
     if _client is None:
         project = os.environ.get("GCP_PROJECT_ID")
-        _client = firestore.Client(project=project) if project else firestore.Client()
+        database = os.environ.get("FIRESTORE_DATABASE", "(default)")
+        _client = firestore.Client(project=project, database=database)
     return _client
 
 

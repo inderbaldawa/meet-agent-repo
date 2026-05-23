@@ -17,7 +17,7 @@ from backend.tools import google_search
 
 log = logging.getLogger(__name__)
 
-MODEL = "gemini-3.1-pro"
+MODEL = "gemini-2.5-pro"
 
 _genai: genai.Client | None = None
 
